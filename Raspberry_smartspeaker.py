@@ -39,70 +39,9 @@ activate_words = [
     "blood glucose",
     "blood sugar test",
     "blood glucose test",
-    "ultrasound",
-    "ultra suond",
-    "turn on ultra sound",
-    "turn on ultrasound",
-    "run ultrasound",
-    "run ultra sound",
-    "run ultrasound test",
-    "run ultra sound test",
-    "start ultrasound",
-    "start ultra sound",
-    "start ultrasound test",
-    "start ultra sound test",
-    "activate ultrasound",
-    "activate ultra sound",
-    "activate ultrasound test",
-    "activate ultra sound test",
-    "begin ultrasound",
-    "begin ultra sound",
-    "begin ultrasound test",
-    "begin ultra sound test",
-    "launch ultrasound",
-    "launch ultra sound",
-    "launch ultrasound test",
-    "launch ultra sound test",
-    "initiate ultrasound",
-    "initiate ultra sound",
-    "initiate ultrasound test",
-    "initiate ultra sound test",
-    "execute ultrasound",
-    "execute ultra sound",
-    "execute ultrasound test",
-    "execute ultra sound test",
-    "perform ultrasound",
-    "perform ultra sound",
-    "perform ultrasound test",
-    "perform ultra sound test",
-    "commence ultrasound",
-    "commence ultra sound",
-    "commence ultrasound test",
-    "commence ultra sound test",
-    "could you start the ultrasound test",
-    "could you start the ultra sound test",
-    "can you start the ultrasound test",
-    "can you start the ultra sound test",
-    "please run the ultrasound",
-    "please run the ultra sound",
-    "please run the ultrasound test",
-    "please run the ultra sound test",
-    "please start the ultrasound",
-    "please start the ultra sound",
-    "please start the ultrasound test",
-    "please start the ultra sound test",
-    "would you start the ultrasound",
-    "would you start the ultra sound",
-    "would you start the ultrasound test",
-    "would you start the ultra sound test",
 ]
 
-home_security_activation_words = [
-    "home security",
-    "start home security",
-    "activate home security",
-    "turn on home security",
-]
+
 
 BPM_activation_words = [
     "blood pressure meter test",
@@ -111,7 +50,6 @@ BPM_activation_words = [
     "activate blood pressure meter",
     "turn on blood pressure meter",
     "blood pressure monitor",
-    "testing"
 ]
 
 calibration_activation_words = [
@@ -119,19 +57,19 @@ calibration_activation_words = [
     "ultrasound calibration"
 ]
 
-#set GPIO
+#set GPIO for LED light
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.setup(17,GPIO.OUT)
 
-#TTS
+#TTS command
 def speak(text):
     tts = gTTS(text=text, lang='en')
     filename = 'voice.mp3'
     tts.save(filename)
     os.system('play ' + filename)
 
-#fft
+#audio analysis
 def analyze_audio(audio_data, rate, target_frequencies, MAX_INTENSITY):
     fft = np.fft.fft(audio_data)
     freq = np.fft.fftfreq(len(fft), 1.0/rate)
@@ -162,7 +100,7 @@ def process_string(s):
         return most_common_char
     return ""
 
-#ultrasound main
+#main
 def run_ultrasound_test():
     try:
         print("Ultrasound testing")
@@ -197,68 +135,44 @@ def run_ultrasound_test():
                     time.sleep(0.15)
                     return
                 
-                if( freqs_detected in SIGNAL_DICT):
-                    #紀錄當前信號
-                    if(SIGNAL_DICT[freqs_detected] == 'Start signal'):
-                        current_data = 'S'
-                    elif(SIGNAL_DICT[freqs_detected] == 'End signal'):
-                        current_data = 'E'
-                    else:
-                        if(SIGNAL_DICT[freqs_detected] == 'Dot'):
-                            current_data = 'D'
+                if freqs_detected in SIGNAL_DICT:
+                    if(not detected):
+                        Data_start_time = time.time()
+                    if(time.time() - Data_start_time > 0):
+                        if(SIGNAL_DICT[freqs_detected] == 'Start signal'):
+                            current_data += 'S'
+                        elif(SIGNAL_DICT[freqs_detected] == 'End signal'):
+                            current_data += 'E'
                         else:
-                            current_data = SIGNAL_DICT[freqs_detected]
+                            if(SIGNAL_DICT[freqs_detected] == 'Dot'):
+                                current_data += 'D'
+                            else:
+                                current_data += SIGNAL_DICT[freqs_detected]
+                    detected = True
                 else:
-                    current_data = ""
-                
-                if(current_data):
-                    if(current_data == last_data):
-                        max_counter+=1
-                    else:
-                        last_data = current_data
-                
-                if(max_counter > 10):
-                    result += current_data
-                
-                # if freqs_detected in SIGNAL_DICT:
-                #     if(not detected):
-                #         Data_start_time = time.time()
-                #     if(time.time() - Data_start_time > 0):
-                #         if(SIGNAL_DICT[freqs_detected] == 'Start signal'):
-                #             current_data += 'S'
-                #         elif(SIGNAL_DICT[freqs_detected] == 'End signal'):
-                #             current_data += 'E'
-                #         else:
-                #             if(SIGNAL_DICT[freqs_detected] == 'Dot'):
-                #                 current_data += 'D'
-                #             else:
-                #                 current_data += SIGNAL_DICT[freqs_detected]
-                #     detected = True
-                # else:
-                #     if(detected):
-                #         duration = time.time() - Data_start_time
-                #         if(duration > 0.1 and current_data):
-                #             processed_string = process_string(current_data)
-                #             if processed_string:
-                #                 print(processed_string)
-                #                 if(processed_string == 'S'):
-                #                     if(is_recording):
-                #                         result = ""
-                #                     is_recording = True
-                #                 elif(processed_string == 'E'):
-                #                     if(is_recording):
-                #                         print("speak : " + result)
-                #                         speak_Text = "Your blood glucose level is " + result + " Mg/dL."
-                #                         speak(speak_Text)
-                #                         break
-                #                     result = ""
-                #                     is_recording = False
-                #                 elif(is_recording):
-                #                     result+=processed_string
-                #             current_data = ""
-                #     detected = False
+                    if(detected):
+                        duration = time.time() - Data_start_time
+                        if(duration > 0.1 and current_data):
+                            processed_string = process_string(current_data)
+                            if processed_string:
+                                print(processed_string)
+                                if(processed_string == 'S'):
+                                    if(is_recording):
+                                        result = ""
+                                    is_recording = True
+                                elif(processed_string == 'E'):
+                                    if(is_recording):
+                                        print("speak : " + result)
+                                        speak_Text = "Your blood glucose level is " + result + " Mg/dL."
+                                        speak(speak_Text)
+                                        break
+                                    result = ""
+                                    is_recording = False
+                                elif(is_recording):
+                                    result+=processed_string
+                            current_data = ""
+                    detected = False
         finally:
-            # Stop PyAudio stream
             stream.stop_stream()
             stream.close()
             p.terminate()
@@ -353,69 +267,6 @@ def run_BPM_ultrasound_test():
     except (IOError, OSError) as e:
         print(f"File error occurred: {e}")
 
-def run_home_security():
-    try:
-        print("home security Ultrasound testing")
-        speak("Activate the home security function")
-        # Start PyAudio stream
-        p = pyaudio.PyAudio()
-        stream = p.open(format=pyaudio.paInt16, channels=1, rate=RATE, input=True, frames_per_buffer=CHUNK)
-        try:
-            elapsed_time = [0,0]
-            freq_start_time = [None,None]
-            TARGET_FREQUENCIES = [20000, 21000]
-            system_start_time = time.time()
-            while True:
-                # Record audio
-                try:
-                    data = np.frombuffer(stream.read(CHUNK), dtype=np.int16)
-                except IOError as e:
-                    print("${e}")
-                    continue  # Ignore the error and continue
-                # Analyze audio
-                freqs_detected = analyze_audio(data, RATE,TARGET_FREQUENCIES, 5000)
-                if(freqs_detected[0] == 1):
-                    if(freq_start_time[0] is not None):
-                        elapsed_time[0] = time.time() - freq_start_time[0]
-                        print(elapsed_time[0])
-                        if(elapsed_time[0] > 3):
-                            speak("WARNING! WARNING! The door has been opened for more than 3 seconds.")
-                            stream.stop_stream()
-                            stream.close()
-                            p.terminate()
-                            p = pyaudio.PyAudio()
-                            stream = p.open(format=pyaudio.paInt16, channels=1, rate=RATE, input=True, frames_per_buffer=CHUNK)
-                            freq_start_time[0] = None
-                    else:
-                        freq_start_time[0] = time.time()
-                else:
-                    freq_start_time[0] = None
-                if(freqs_detected[1] == 1):
-                    if(freq_start_time[1] is not None):
-                        elapsed_time[0] = time.time() - freq_start_time[1]
-                        print(elapsed_time[0])
-                        if(elapsed_time[0] > 3):
-                            speak("Warning! Warning! The temperature has exceeded 50 degrees for more than 3 seconds.")
-                            stream.stop_stream()
-                            stream.close()
-                            p.terminate()
-                            p = pyaudio.PyAudio()
-                            stream = p.open(format=pyaudio.paInt16, channels=1, rate=RATE, input=True, frames_per_buffer=CHUNK)
-                            freq_start_time[0] = None
-                    else:
-                        freq_start_time[1] = time.time()
-                else:
-                    freq_start_time[1] = None
-                # if((time.time() - system_start_time)>60):
-                #     break
-        finally:
-            # Stop PyAudio stream
-            stream.stop_stream()
-            stream.close()
-            p.terminate()
-    except (IOError, OSError) as e:
-        print(f"File error occurred: {e}")
-
 def run_ultrasound_calibration():
     try:
         print("ultrasound calibration testing")
@@ -476,7 +327,7 @@ def turn_off_led():
 
 is_wake = False
 
-#STT
+#STT command
 def get_command():
     current_time = datetime.now().strftime("%Y%m%d%H%M%S")
     output_folder = "output"
@@ -513,7 +364,7 @@ def get_command():
 
 speak("I am ready")
 
-#main
+#main loop
 while True:
     print("Waiting for wake word command...")
     is_wake = False
@@ -547,12 +398,4 @@ while True:
             time.sleep(0.15)
             turn_on_led()
             time.sleep(0.15)
-            
-# 建議流程
-# 1. 電源線、麥克風、喇叭安裝完成。
-# 2. 等待系統啟動，啟動完成會唸出"I am ready"表示準備完成可以測試。
-# 3. 先測試血糖計模式
-# - 超聲波模組先不要進入血糖計模式(避免雜訊)，等待血糖計開始測試並倒數計時後，在按下超聲波模組的血糖計模式。
-# 4. 測試居家安控模式
-# 居家安控目前有個問題是進入居家安控模式後無法退出，需重新插電或我進到後端重開代碼。
-# 居家安控模式無法退出的原因是，需要新增一個按鈕手動切掉，因為現在的安控模式會把麥克風獨佔，導致智慧音響無法讀取人聲。
+
