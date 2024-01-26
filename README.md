@@ -1,6 +1,10 @@
-# Ultrasound Smartspeaker
+# Ultrasonic Smartspeaker
 
-smartspeaker is an intelligent voice recognition and ultrasonic frequency domain decoding system designed specifically for the Raspberry Pi 3B and running on the Linux operating system. This project is mainly aimed at applications such as smart medical devices and home security control, providing innovative solutions for data transmission in the ultrasonic frequency domain.
+We've innovatively integrated smart speakers with USB microphones, endowing them with the capability to detect ultrasonic signals. This fusion not only enhances the functionality of smart speakers but also paves the way for new applications in smart home technology.  
+
+Smartspeaker is an intelligent voice recognition and ultrasonic frequency domain decoding system designed from the Raspberry Pi 3B and running on the Linux operating system.    
+
+This project is mainly aimed at applications such as smart medical devices and home security, providing innovative solutions for data transmission in the ultrasonic frequency domain.  
 
 ## Environment Requirements
 - OS: Linux for Raspberry Pi 
